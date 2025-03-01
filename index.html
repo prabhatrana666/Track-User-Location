@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Location</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(145deg, #f3f4f6, #e5e7eb);
+            color: #e8176e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .geo-btn {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .geo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .info-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: left;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="geo-btn"><b>Show User Location</b></button>
+    <div class="info-box showDetails">
+        <strong style="color: rgb(52, 20, 20);">Location Details :</strong>
+        <p>Click the button to fetch your location.</p>
+    </div>
+    <div class="info-box fullAddress">
+        <strong style="color: rgb(52, 20, 20);">Full Address :</strong>
+        <p>Your full address will be displayed here.</p>
+    </div>
+    <hr>
+    <hr>
+    <p style="color: rgb(52, 20, 20);">Total hit limit :</p><span id="span1"></span>
+    <p style="color: rgb(52, 20, 20);">remaining limit :</p><span id="span2"></span>
+
+    <script>
+        const showDetails = document.querySelector(".showDetails p");
+        const fullAddress = document.querySelector(".fullAddress p");
+
+        const apiEndPoint = 'https://api.opencagedata.com/geocode/v1/json';
+        const apiKey = "b4caf3e2447b4ea982a3239387639f70";
+
+        const getUserCurrentAddress = async (latitude, longitude) => {
+            const query = `${latitude},${longitude}`;
+            const apiUrl = `${apiEndPoint}?q=${query}&key=${apiKey}`;
+
+            try {
+                const res = await fetch(apiUrl);
+                const data = await res.json();
+                if (data && data.results.length > 0) {
+                    const address = data.results[0].formatted;
+                    fullAddress.textContent = `Full Address: ${address}`;
+                } else {
+                    fullAddress.textContent = "Unable to fetch address.";
+                }
+                const data2 = data.rate.limit;
+                document.getElementById("span1").innerHTML = data2;
+                const data3 = data.rate.remaining;
+                document.getElementById("span2").innerHTML = data3;
+            } catch (error) {
+                console.error("Error fetching address:", error);
+                fullAddress.textContent = "Error fetching address.";
+            }
+        };
+
+        document.querySelector(".geo-btn").addEventListener("click", () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        showDetails.textContent = `Latitude: ${latitude}, Longitude: ${longitude}`;
+                        getUserCurrentAddress(latitude, longitude);
+                    },
+                    (error) => {
+                        showDetails.textContent = `Error: ${error.message}`;
+                        console.error("Geolocation error:", error.message);
+                    }
+                );
+            } else {
+                showDetails.textContent = "Geolocation is not supported by your browser.";
+            }
+        });
+    </script>
+</body>
+
+</html>
